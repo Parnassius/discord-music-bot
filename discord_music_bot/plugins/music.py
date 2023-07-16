@@ -220,8 +220,7 @@ async def setup(bot: MyBot) -> None:
 
     @bot.listen()
     async def on_track_end(event: TrackEndEvent[MyPlayer]) -> None:
-        if event.player.now_playing_message:
-            await event.player.now_playing_message.delete()
+        await event.player.delete_now_playing_message()
         if event.player.queue:
             await event.player.play(event.player.queue.popleft())
 
