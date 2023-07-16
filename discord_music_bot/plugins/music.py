@@ -204,9 +204,9 @@ async def setup(bot: MyBot) -> None:
         if not player:
             return
         voice_channel = cast(VoiceChannel | StageChannel, player.channel)
-        if voice_channel.members == [bot.user]:
+        if all(x.bot for x in voice_channel.members):
             await asyncio.sleep(15)
-            if voice_channel.members == [bot.user]:
+            if all(x.bot for x in voice_channel.members):
                 await player.disconnect()
 
     @bot.listen()
