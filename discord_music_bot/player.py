@@ -12,8 +12,17 @@ class MyPlayer(Player[Client]):
         super().__init__(client, channel)
 
         self.queue: deque[Track] = deque()
+        self.loop: bool | Track = False
         self.text_channel: TextChannel | VoiceChannel | Thread | None = None
         self.now_playing_message: Message | None = None
+
+    async def stop(self) -> None:
+        if isinstance(self.loop, Track):
+            try:
+                self.loop = self.queue.popleft()
+            except IndexError:
+                self.loop = False
+        await super().stop()
 
     async def disconnect(self, *, force: bool = False) -> None:
         await self.delete_now_playing_message()

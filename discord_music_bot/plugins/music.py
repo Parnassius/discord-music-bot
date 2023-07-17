@@ -117,6 +117,42 @@ async def setup(bot: MyBot) -> None:
         timestamp = _timestamp(position, player.current.length >= 60 * 60 * 100)
         await interaction.followup.send(f"Moved to {timestamp}.")
 
+    @bot.tree.command(description="Loop the current track.")  # type: ignore[arg-type]
+    @guild_only()
+    async def loop(interaction: Interaction[MyBot]) -> None:
+        await interaction.response.defer()
+
+        guild = cast(Guild, interaction.guild)
+        player = cast(MyPlayer | None, guild.voice_client)
+        if not player or not player.current:
+            await interaction.followup.send("There is nothing playing.")
+            return
+
+        if player.loop is player.current:
+            player.loop = False
+            await interaction.followup.send("Looping disabled.")
+        else:
+            player.loop = player.current
+            await interaction.followup.send("Track looping enabled.")
+
+    @bot.tree.command(description="Loop the current queue.")  # type: ignore[arg-type]
+    @guild_only()
+    async def loopall(interaction: Interaction[MyBot]) -> None:
+        await interaction.response.defer()
+
+        guild = cast(Guild, interaction.guild)
+        player = cast(MyPlayer | None, guild.voice_client)
+        if not player or not player.current:
+            await interaction.followup.send("There is nothing playing.")
+            return
+
+        if player.loop is True:
+            player.loop = False
+            await interaction.followup.send("Looping disabled.")
+        else:
+            player.loop = True
+            await interaction.followup.send("Queue looping enabled.")
+
     @bot.tree.command(description="Skip to the next track.")  # type: ignore[arg-type]
     @guild_only()
     async def skip(interaction: Interaction[MyBot]) -> None:
@@ -278,8 +314,15 @@ async def setup(bot: MyBot) -> None:
     @bot.listen()
     async def on_track_end(event: TrackEndEvent[MyPlayer]) -> None:
         await event.player.delete_now_playing_message()
-        if event.player.queue:
-            await event.player.play(event.player.queue.popleft())
+        if isinstance(event.player.loop, Track):
+            await event.player.play(event.player.loop)
+        else:
+            if event.player.loop:
+                event.player.queue.append(event.track)
+            try:
+                await event.player.play(event.player.queue.popleft())
+            except IndexError:
+                pass
 
     def _timestamp(milliseconds: int | float, show_hours: bool | None = None) -> str:
         parts = []
