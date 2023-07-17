@@ -153,6 +153,18 @@ async def setup(bot: MyBot) -> None:
     )
     @guild_only()
     async def remove(interaction: Interaction[MyBot], song: str) -> None:
+        await _remove_or_bump(interaction, song, bump=False)
+
+    @bot.tree.command(  # type: ignore[arg-type]
+        description="Move a track to the top of the queue."
+    )
+    @guild_only()
+    async def bump(interaction: Interaction[MyBot], song: str) -> None:
+        await _remove_or_bump(interaction, song, bump=True)
+
+    async def _remove_or_bump(
+        interaction: Interaction[MyBot], song: str, *, bump: bool
+    ) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
@@ -163,7 +175,7 @@ async def setup(bot: MyBot) -> None:
 
         song = song.casefold()
 
-        if song in player.current.title.casefold():
+        if not bump and song in player.current.title.casefold():
             skipped_track = player.current
             await player.stop()
             track_link = _track_link(skipped_track)
@@ -174,8 +186,16 @@ async def setup(bot: MyBot) -> None:
         for track in player.queue:
             if song in track.title.casefold():
                 player.queue.remove(track)
+                if bump:
+                    player.queue.appendleft(track)
                 track_link = _track_link(track)
-                embed = Embed(title="Track removed", description=track_link)
+                if bump:
+                    embed = Embed(
+                        title="Track moved to the top of the queue",
+                        description=track_link,
+                    )
+                else:
+                    embed = Embed(title="Track removed", description=track_link)
                 await interaction.followup.send(embed=embed)
                 return
 
