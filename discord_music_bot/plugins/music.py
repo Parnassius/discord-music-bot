@@ -114,7 +114,7 @@ async def setup(bot: MyBot) -> None:
 
         await player.seek(position)
 
-        timestamp = _timestamp(position)
+        timestamp = _timestamp(position, player.current.length >= 60 * 60 * 100)
         await interaction.followup.send(f"Moved to {timestamp}.")
 
     @bot.tree.command(description="Skip to the next track.")  # type: ignore[arg-type]
@@ -197,7 +197,9 @@ async def setup(bot: MyBot) -> None:
         progress_bar_before = "-" * position
         progress_bar_after = "-" * (19 - position)
         progress_bar = f"{progress_bar_before}:radio_button:{progress_bar_after}"
-        timestamp_current = _timestamp(player.position)
+        timestamp_current = _timestamp(
+            player.position, player.current.length > 60 * 60 * 1000
+        )
         timestamp_total = _timestamp(player.current.length)
         description = (
             f"Now playing: {track_link}\n"
@@ -259,9 +261,15 @@ async def setup(bot: MyBot) -> None:
         if event.player.queue:
             await event.player.play(event.player.queue.popleft())
 
-    def _timestamp(milliseconds: int | float) -> str:
+    def _timestamp(milliseconds: int | float, show_hours: bool | None = None) -> str:
+        parts = []
         minutes, seconds = divmod(int(milliseconds / 1000), 60)
-        return f"{minutes:0>2}:{seconds:0>2}"
+        if show_hours or (show_hours is None and minutes >= 60):
+            hours, minutes = divmod(minutes, 60)
+            parts.append(str(hours))
+        parts.append(f"{minutes:0>2}")
+        parts.append(f"{seconds:0>2}")
+        return ":".join(parts)
 
     def _track_link(track: Track) -> str:
         track_title = escape_markdown(track.title)
