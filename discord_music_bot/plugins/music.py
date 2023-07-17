@@ -82,6 +82,41 @@ async def setup(bot: MyBot) -> None:
         if not player.current:
             await player.play(player.queue.popleft())
 
+    @bot.tree.command(description="Seek the current track.")  # type: ignore[arg-type]
+    @guild_only()
+    async def seek(interaction: Interaction[MyBot], timestamp: str) -> None:
+        await interaction.response.defer()
+
+        guild = cast(Guild, interaction.guild)
+        player = cast(MyPlayer | None, guild.voice_client)
+        if not player or not player.current:
+            await interaction.followup.send("There is nothing playing.")
+            return
+
+        try:
+            position = player.position + int(timestamp) * 1000
+        except ValueError:
+            position = 0
+            try:
+                for part in timestamp.split(":"):
+                    position = position * 60 + int(part)
+            except ValueError:
+                await interaction.followup.send("Invalid timestamp specified.")
+                return
+            position *= 1000
+
+        if position > player.current.length:
+            await interaction.followup.send("Invalid timestamp specified.")
+            return
+
+        if position < 0:
+            position = 0
+
+        await player.seek(position)
+
+        timestamp = _timestamp(position)
+        await interaction.followup.send(f"Moved to {timestamp}.")
+
     @bot.tree.command(description="Skip to the next track.")  # type: ignore[arg-type]
     @guild_only()
     async def skip(interaction: Interaction[MyBot]) -> None:
