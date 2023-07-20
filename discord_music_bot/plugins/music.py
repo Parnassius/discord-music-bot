@@ -16,7 +16,15 @@ from discord import (
 )
 from discord.app_commands import guild_only
 from discord.utils import escape_markdown
-from mafic import Playlist, Track, TrackEndEvent, TrackStartEvent
+from wavelink import (  # type: ignore[import]
+    InvalidNode,
+    NodeStatus,
+    Playable,
+    Playlist,
+    TrackEventPayload,
+    WebsocketClosedPayload,
+    YouTubeTrack,
+)
 
 from discord_music_bot.bot import MyBot
 from discord_music_bot.player import MyPlayer
@@ -37,27 +45,35 @@ async def setup(bot: MyBot) -> None:
 
         if not player:
             if user.voice and user.voice.channel:
-                player = await user.voice.channel.connect(cls=MyPlayer, self_deaf=True)
+                try:
+                    player = await user.voice.channel.connect(
+                        cls=MyPlayer, self_deaf=True
+                    )
+                except (IndexError, InvalidNode):
+                    await interaction.followup.send(
+                        "Connection to Lavalink not yet established."
+                    )
+                    return
             else:
                 await interaction.followup.send("You're not in a voice channel.")
                 return
 
-        if not player.node.available:
-            voice_channel = cast(VoiceChannel | StageChannel, player.channel)
+        if player.current_node.status != NodeStatus.CONNECTED:
             await player.disconnect()
-            while bot.user in voice_channel.members:
-                await asyncio.sleep(0.05)
-            player = await voice_channel.connect(cls=MyPlayer, self_deaf=True)
+            await interaction.followup.send(
+                "Connection to Lavalink not yet established."
+            )
+            return
 
         player.text_channel = channel
 
-        results = await player.fetch_tracks(song)
+        results = cast(list[Playable] | Playlist, await YouTubeTrack.search(song))
         if not results:
             await interaction.followup.send("No results found.")
             return
 
         if isinstance(results, Playlist):
-            player.queue.extend(results.tracks)
+            player.play_queue.extend(results.tracks)
 
             embed = Embed(
                 title="Playlist enqueued", description=escape_markdown(results.name)
@@ -72,7 +88,7 @@ async def setup(bot: MyBot) -> None:
 
         else:
             track = results[0]
-            player.queue.append(track)
+            player.play_queue.append(track)
 
             track_link = _track_link(track)
             embed = Embed(title="Track enqueued", description=track_link)
@@ -80,7 +96,7 @@ async def setup(bot: MyBot) -> None:
         await interaction.followup.send(embed=embed)
 
         if not player.current:
-            await player.play(player.queue.popleft())
+            await player.play(player.play_queue.popleft())
 
     @bot.tree.command(description="Seek the current track.")  # type: ignore[arg-type]
     @guild_only()
@@ -94,7 +110,7 @@ async def setup(bot: MyBot) -> None:
             return
 
         try:
-            position = player.position + int(timestamp) * 1000
+            position = int(player.position) + int(timestamp) * 1000
         except ValueError:
             position = 0
             try:
@@ -173,7 +189,7 @@ async def setup(bot: MyBot) -> None:
             return
 
         if clear:
-            player.queue.clear()
+            player.play_queue.clear()
         skipped_track = player.current
         await player.stop()
 
@@ -219,11 +235,11 @@ async def setup(bot: MyBot) -> None:
             await interaction.followup.send(embed=embed)
             return
 
-        for track in player.queue:
+        for track in player.play_queue:
             if song in track.title.casefold():
-                player.queue.remove(track)
+                player.play_queue.remove(track)
                 if bump:
-                    player.queue.appendleft(track)
+                    player.play_queue.appendleft(track)
                 track_link = _track_link(track)
                 if bump:
                     embed = Embed(
@@ -262,13 +278,13 @@ async def setup(bot: MyBot) -> None:
             f"{timestamp_current} {progress_bar} {timestamp_total}"
         )
         embed = Embed(title="Song queue", description=description)
-        for i, track in enumerate(player.queue, 1):
+        for i, track in enumerate(player.play_queue, 1):
             if i > 25:
                 break
             track_link = _track_link(track)
             embed.add_field(name="", value=f"{i}) {track_link}", inline=False)
-        if len(player.queue) > 25:
-            embed.set_footer(text=f"... and {len(player.queue) - 25} more.")
+        if len(player.play_queue) > 25:
+            embed.set_footer(text=f"... and {len(player.play_queue) - 25} more.")
 
         await interaction.followup.send(embed=embed)
 
@@ -281,7 +297,7 @@ async def setup(bot: MyBot) -> None:
 
         guild = cast(Guild, interaction.guild)
         player = cast(MyPlayer | None, guild.voice_client)
-        if not player or not player.connected:
+        if not player or not player.is_connected():
             await interaction.followup.send("I'm not in a voice channel.")
             return
 
@@ -303,26 +319,34 @@ async def setup(bot: MyBot) -> None:
                 await player.disconnect()
 
     @bot.listen()
-    async def on_track_start(event: TrackStartEvent[MyPlayer]) -> None:
-        if event.player.text_channel:
-            track_link = _track_link(event.track)
+    async def on_wavelink_track_start(payload: TrackEventPayload) -> None:
+        player = cast(MyPlayer, payload.player)
+
+        if player.text_channel:
+            track_link = _track_link(payload.track)
             embed = Embed(title="Now playing", description=track_link)
-            event.player.now_playing_message = await event.player.text_channel.send(
-                embed=embed
-            )
+            player.now_playing_message = await player.text_channel.send(embed=embed)
 
     @bot.listen()
-    async def on_track_end(event: TrackEndEvent[MyPlayer]) -> None:
-        await event.player.delete_now_playing_message()
-        if isinstance(event.player.loop, Track):
-            await event.player.play(event.player.loop)
+    async def on_wavelink_track_end(payload: TrackEventPayload) -> None:
+        player = cast(MyPlayer, payload.player)
+
+        await player.delete_now_playing_message()
+        if isinstance(player.loop, Playable):
+            await player.play(player.loop)
         else:
-            if event.player.loop:
-                event.player.queue.append(event.track)
+            if player.loop:
+                player.play_queue.append(payload.track)
             try:
-                await event.player.play(event.player.queue.popleft())
+                await player.play(player.play_queue.popleft())
             except IndexError:
                 pass
+
+    @bot.listen()
+    async def on_wavelink_websocket_closed(payload: WebsocketClosedPayload) -> None:
+        player = cast(MyPlayer, payload.player)
+
+        await player.delete_now_playing_message()
 
     def _timestamp(milliseconds: int | float, show_hours: bool | None = None) -> str:
         parts = []
@@ -334,7 +358,7 @@ async def setup(bot: MyBot) -> None:
         parts.append(f"{seconds:0>2}")
         return ":".join(parts)
 
-    def _track_link(track: Track) -> str:
+    def _track_link(track: Playable) -> str:
         track_title = escape_markdown(track.title)
         if not track.uri:
             return track_title

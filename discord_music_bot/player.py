@@ -1,32 +1,33 @@
 from __future__ import annotations
 
 from collections import deque
+from typing import Any
 
 from discord import Client, Message, NotFound, TextChannel, Thread, VoiceChannel
 from discord.abc import Connectable
-from mafic import Player, Track
+from wavelink import Playable, Player  # type: ignore[import]
 
 
-class MyPlayer(Player[Client]):
+class MyPlayer(Player):  # type: ignore[misc]
     def __init__(self, client: Client, channel: Connectable) -> None:
         super().__init__(client, channel)
 
-        self.queue: deque[Track] = deque()
-        self.loop: bool | Track = False
+        self.play_queue: deque[Playable] = deque()
+        self.loop: bool | Playable = False
         self.text_channel: TextChannel | VoiceChannel | Thread | None = None
         self.now_playing_message: Message | None = None
 
-    async def stop(self) -> None:
-        if isinstance(self.loop, Track):
+    async def stop(self, *, force: bool = True) -> None:
+        if isinstance(self.loop, Playable):
             try:
-                self.loop = self.queue.popleft()
+                self.loop = self.play_queue.popleft()
             except IndexError:
                 self.loop = False
-        await super().stop()
+        await super().stop(force=force)
 
-    async def disconnect(self, *, force: bool = False) -> None:
+    async def disconnect(self, **kwargs: Any) -> None:
         await self.delete_now_playing_message()
-        await super().disconnect(force=force)
+        await super().disconnect(**kwargs)
 
     async def delete_now_playing_message(self) -> None:
         if self.now_playing_message:

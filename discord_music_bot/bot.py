@@ -1,17 +1,14 @@
 from __future__ import annotations
 
-import asyncio
 import io
 from pathlib import Path
 from sys import exc_info
 from traceback import format_exception
 from typing import Any
 
-import aiohttp
 from discord import File, Object
-from discord.backoff import ExponentialBackoff
 from discord.ext import commands
-from mafic import Node, NodePool
+from wavelink import Node, NodePool  # type: ignore[import]
 
 
 class MyBot(commands.Bot):
@@ -24,7 +21,6 @@ class MyBot(commands.Bot):
     ):
         super().__init__(*args, **kwargs)
         self.lavalink_connection = lavalink_connection
-        self.pool = NodePool(self)
         self.test_guild_id = test_guild_id
 
     async def setup_hook(self) -> None:
@@ -41,8 +37,17 @@ class MyBot(commands.Bot):
             await self.tree.sync()
 
     async def on_ready(self) -> None:
-        await self.add_node()
         print(f"Logged on as {self.user}!")
+
+        host, port, password = self.lavalink_connection
+        node = Node(uri=f"http://{host}:{port}", password=password)
+        await NodePool.connect(client=self, nodes=[node])
+
+    async def on_wavelink_node_ready(self, node: Node) -> None:
+        print(f"Node {node.id} is ready!")
+
+        for player in list(node.players.values()):
+            await player.disconnect()
 
     async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any) -> None:
         if not self.owner_id:
@@ -51,18 +56,3 @@ class MyBot(commands.Bot):
         tb = format_exception(*exc_info())
         file = File(io.BytesIO("".join(tb).encode()), filename="traceback.txt")
         await target.send(f"Handler `{event_method}` raised an exception", file=file)
-
-    async def add_node(self) -> None:
-        node: Node[MyBot] | None = None
-        backoff = ExponentialBackoff()
-        host, port, password = self.lavalink_connection
-        while not node:
-            try:
-                node = await self.pool.create_node(
-                    host=host,
-                    port=port,
-                    label="MAIN",
-                    password=password,
-                )
-            except aiohttp.client_exceptions.ClientConnectorError:
-                await asyncio.sleep(backoff.delay())
