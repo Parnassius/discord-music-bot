@@ -58,6 +58,14 @@ async def setup(bot: MyBot) -> None:
                 await interaction.followup.send("You're not in a voice channel.")
                 return
 
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
+            return
+
         if player.current_node.status != NodeStatus.CONNECTED:
             await player.disconnect()
             await interaction.followup.send(
@@ -104,9 +112,19 @@ async def setup(bot: MyBot) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
+        user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.current:
             await interaction.followup.send("There is nothing playing.")
+            return
+
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
             return
 
         try:
@@ -139,9 +157,19 @@ async def setup(bot: MyBot) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
+        user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.current:
             await interaction.followup.send("There is nothing playing.")
+            return
+
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
             return
 
         if player.loop is player.current:
@@ -157,9 +185,19 @@ async def setup(bot: MyBot) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
+        user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.current:
             await interaction.followup.send("There is nothing playing.")
+            return
+
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
             return
 
         if player.loop is True:
@@ -183,9 +221,19 @@ async def setup(bot: MyBot) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
+        user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.current:
             await interaction.followup.send("There is nothing playing.")
+            return
+
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
             return
 
         if clear:
@@ -220,9 +268,19 @@ async def setup(bot: MyBot) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
+        user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.current:
             await interaction.followup.send("The track queue is currently empty.")
+            return
+
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
             return
 
         song = song.casefold()
@@ -260,6 +318,7 @@ async def setup(bot: MyBot) -> None:
 
         guild = cast(Guild, interaction.guild)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.current:
             await interaction.followup.send("The track queue is currently empty.")
             return
@@ -296,9 +355,19 @@ async def setup(bot: MyBot) -> None:
         await interaction.response.defer()
 
         guild = cast(Guild, interaction.guild)
+        user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
+
         if not player or not player.is_connected():
             await interaction.followup.send("I'm not in a voice channel.")
+            return
+
+        if not user.voice:
+            await interaction.followup.send("You're not in a voice channel.")
+            return
+
+        if user.voice.channel != player.channel:
+            await interaction.followup.send("We're not in the same voice channel.")
             return
 
         await player.disconnect()
