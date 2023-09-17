@@ -15,6 +15,7 @@ from discord import (
     VoiceState,
 )
 from discord.app_commands import guild_only
+from discord.app_commands.checks import bot_has_permissions
 from discord.utils import escape_markdown
 from wavelink import (  # type: ignore[import]
     InvalidNode,
@@ -35,6 +36,7 @@ async def setup(bot: MyBot) -> None:
         description="Play a track from YouTube."
     )
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def play(interaction: Interaction[MyBot], song: str) -> None:
         await interaction.response.defer()
 
@@ -108,6 +110,7 @@ async def setup(bot: MyBot) -> None:
 
     @bot.tree.command(description="Seek the current track.")  # type: ignore[arg-type]
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def seek(interaction: Interaction[MyBot], timestamp: str) -> None:
         await interaction.response.defer()
 
@@ -153,6 +156,7 @@ async def setup(bot: MyBot) -> None:
 
     @bot.tree.command(description="Loop the current track.")  # type: ignore[arg-type]
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def loop(interaction: Interaction[MyBot]) -> None:
         await interaction.response.defer()
 
@@ -181,6 +185,7 @@ async def setup(bot: MyBot) -> None:
 
     @bot.tree.command(description="Loop the current queue.")  # type: ignore[arg-type]
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def loopall(interaction: Interaction[MyBot]) -> None:
         await interaction.response.defer()
 
@@ -209,11 +214,13 @@ async def setup(bot: MyBot) -> None:
 
     @bot.tree.command(description="Skip to the next track.")  # type: ignore[arg-type]
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def skip(interaction: Interaction[MyBot]) -> None:
         await _skip(interaction)
 
     @bot.tree.command(description="Stop the music.")  # type: ignore[arg-type]
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def stop(interaction: Interaction[MyBot]) -> None:
         await _skip(interaction, clear=True)
 
@@ -252,6 +259,7 @@ async def setup(bot: MyBot) -> None:
         description="Remove a track from the queue."
     )
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def remove(interaction: Interaction[MyBot], song: str) -> None:
         await _remove_or_bump(interaction, song, bump=False)
 
@@ -259,6 +267,7 @@ async def setup(bot: MyBot) -> None:
         description="Move a track to the top of the queue."
     )
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def bump(interaction: Interaction[MyBot], song: str) -> None:
         await _remove_or_bump(interaction, song, bump=True)
 
@@ -313,6 +322,7 @@ async def setup(bot: MyBot) -> None:
 
     @bot.tree.command(description="Show the current queue.")  # type: ignore[arg-type]
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def queue(interaction: Interaction[MyBot]) -> None:
         await interaction.response.defer()
 
@@ -351,6 +361,7 @@ async def setup(bot: MyBot) -> None:
         description="Disconnect from the voice channel."
     )
     @guild_only()
+    @bot_has_permissions(view_channel=True, send_messages=True)
     async def disconnect(interaction: Interaction[MyBot]) -> None:
         await interaction.response.defer()
 

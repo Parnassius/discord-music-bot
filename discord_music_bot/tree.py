@@ -24,4 +24,4 @@ class MyTree(CommandTree[MyBot]):
         if interaction.response.is_done():
             await interaction.followup.send(str(error), ephemeral=True)
         else:
-            await interaction.response.send_message(str(error))
+            await interaction.response.send_message(str(error), ephemeral=True)
