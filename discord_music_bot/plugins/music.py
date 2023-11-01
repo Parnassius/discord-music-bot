@@ -17,7 +17,7 @@ from discord import (
 from discord.app_commands import guild_only
 from discord.app_commands.checks import bot_has_permissions
 from discord.utils import escape_markdown
-from wavelink import (  # type: ignore[import]
+from wavelink import (  # type: ignore[import-untyped]
     InvalidNode,
     NodeStatus,
     Playable,

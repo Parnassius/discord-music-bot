@@ -8,7 +8,7 @@ from typing import Any
 
 from discord import File, Object
 from discord.ext import commands
-from wavelink import Node, NodePool  # type: ignore[import]
+from wavelink import Node, NodePool  # type: ignore[import-untyped]
 
 
 class MyBot(commands.Bot):

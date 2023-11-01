@@ -5,7 +5,7 @@ from typing import Any
 
 from discord import Client, Message, NotFound, TextChannel, Thread, VoiceChannel
 from discord.abc import Connectable
-from wavelink import Playable, Player  # type: ignore[import]
+from wavelink import Playable, Player  # type: ignore[import-untyped]
 
 
 class MyPlayer(Player):  # type: ignore[misc]
