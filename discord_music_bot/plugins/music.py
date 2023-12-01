@@ -32,9 +32,7 @@ from discord_music_bot.player import MyPlayer
 
 
 async def setup(bot: MyBot) -> None:
-    @bot.tree.command(  # type: ignore[arg-type]
-        description="Play a track from YouTube."
-    )
+    @bot.tree.command(description="Play a track from YouTube.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def play(interaction: Interaction[MyBot], song: str) -> None:
@@ -108,7 +106,7 @@ async def setup(bot: MyBot) -> None:
         if not player.current:
             await player.play(player.play_queue.popleft())
 
-    @bot.tree.command(description="Seek the current track.")  # type: ignore[arg-type]
+    @bot.tree.command(description="Seek the current track.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def seek(interaction: Interaction[MyBot], timestamp: str) -> None:
@@ -154,7 +152,7 @@ async def setup(bot: MyBot) -> None:
         timestamp = _timestamp(position, player.current.length >= 60 * 60 * 100)
         await interaction.followup.send(f"Moved to {timestamp}.")
 
-    @bot.tree.command(description="Loop the current track.")  # type: ignore[arg-type]
+    @bot.tree.command(description="Loop the current track.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def loop(interaction: Interaction[MyBot]) -> None:
@@ -183,7 +181,7 @@ async def setup(bot: MyBot) -> None:
             player.loop = player.current
             await interaction.followup.send("Track looping enabled.")
 
-    @bot.tree.command(description="Loop the current queue.")  # type: ignore[arg-type]
+    @bot.tree.command(description="Loop the current queue.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def loopall(interaction: Interaction[MyBot]) -> None:
@@ -212,13 +210,13 @@ async def setup(bot: MyBot) -> None:
             player.loop = True
             await interaction.followup.send("Queue looping enabled.")
 
-    @bot.tree.command(description="Skip to the next track.")  # type: ignore[arg-type]
+    @bot.tree.command(description="Skip to the next track.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def skip(interaction: Interaction[MyBot]) -> None:
         await _skip(interaction)
 
-    @bot.tree.command(description="Stop the music.")  # type: ignore[arg-type]
+    @bot.tree.command(description="Stop the music.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def stop(interaction: Interaction[MyBot]) -> None:
@@ -255,17 +253,13 @@ async def setup(bot: MyBot) -> None:
             embed = Embed(title="Track skipped", description=track_link)
             await interaction.followup.send(embed=embed)
 
-    @bot.tree.command(  # type: ignore[arg-type]
-        description="Remove a track from the queue."
-    )
+    @bot.tree.command(description="Remove a track from the queue.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def remove(interaction: Interaction[MyBot], song: str) -> None:
         await _remove_or_bump(interaction, song, bump=False)
 
-    @bot.tree.command(  # type: ignore[arg-type]
-        description="Move a track to the top of the queue."
-    )
+    @bot.tree.command(description="Move a track to the top of the queue.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def bump(interaction: Interaction[MyBot], song: str) -> None:
@@ -320,7 +314,7 @@ async def setup(bot: MyBot) -> None:
 
         await interaction.followup.send("The track was not found in the queue.")
 
-    @bot.tree.command(description="Show the current queue.")  # type: ignore[arg-type]
+    @bot.tree.command(description="Show the current queue.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def queue(interaction: Interaction[MyBot]) -> None:
@@ -357,9 +351,7 @@ async def setup(bot: MyBot) -> None:
 
         await interaction.followup.send(embed=embed)
 
-    @bot.tree.command(  # type: ignore[arg-type]
-        description="Disconnect from the voice channel."
-    )
+    @bot.tree.command(description="Disconnect from the voice channel.")
     @guild_only()
     @bot_has_permissions(view_channel=True, send_messages=True)
     async def disconnect(interaction: Interaction[MyBot]) -> None:
