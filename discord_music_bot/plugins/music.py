@@ -22,6 +22,7 @@ from wavelink import (
     Playable,
     Playlist,
     TrackEndEventPayload,
+    TrackSource,
     TrackStartEventPayload,
     WebsocketClosedEventPayload,
 )
@@ -68,7 +69,7 @@ async def setup(bot: MyBot) -> None:
         player.text_channel = channel
 
         try:
-            results = await Playable.search(song)
+            results = await Playable.search(song, source=TrackSource.YouTube)
         except LavalinkLoadException:
             await interaction.followup.send("Failed to load track, please try again.")
             return
