@@ -8,7 +8,6 @@ from discord import (
     Guild,
     Interaction,
     Member,
-    StageChannel,
     TextChannel,
     Thread,
     VoiceChannel,
@@ -17,14 +16,14 @@ from discord import (
 from discord.app_commands import guild_only
 from discord.app_commands.checks import bot_has_permissions
 from discord.utils import escape_markdown
-from wavelink import (  # type: ignore[import-untyped]
-    InvalidNode,
-    NodeStatus,
+from wavelink import (
+    InvalidNodeException,
+    LavalinkLoadException,
     Playable,
     Playlist,
-    TrackEventPayload,
-    WebsocketClosedPayload,
-    YouTubeTrack,
+    TrackEndEventPayload,
+    TrackStartEventPayload,
+    WebsocketClosedEventPayload,
 )
 
 from discord_music_bot.bot import MyBot
@@ -49,7 +48,7 @@ async def setup(bot: MyBot) -> None:
                     player = await user.voice.channel.connect(
                         cls=MyPlayer, self_deaf=True
                     )
-                except (IndexError, InvalidNode):
+                except (IndexError, InvalidNodeException):
                     await interaction.followup.send(
                         "Connection to Lavalink not yet established."
                     )
@@ -66,16 +65,13 @@ async def setup(bot: MyBot) -> None:
             await interaction.followup.send("We're not in the same voice channel.")
             return
 
-        if player.current_node.status != NodeStatus.CONNECTED:
-            await player.disconnect()
-            await interaction.followup.send(
-                "Connection to Lavalink not yet established."
-            )
-            return
-
         player.text_channel = channel
 
-        results = cast(list[Playable] | Playlist, await YouTubeTrack.search(song))
+        try:
+            results = await Playable.search(song)
+        except LavalinkLoadException:
+            await interaction.followup.send("Failed to load track, please try again.")
+            return
         if not results:
             await interaction.followup.send("No results found.")
             return
@@ -103,7 +99,7 @@ async def setup(bot: MyBot) -> None:
 
         await interaction.followup.send(embed=embed)
 
-        if not player.current:
+        if not player.playing:
             await player.play(player.play_queue.popleft())
 
     @bot.tree.command(description="Seek the current track.")
@@ -361,7 +357,7 @@ async def setup(bot: MyBot) -> None:
         user = cast(Member, interaction.user)
         player = cast(MyPlayer | None, guild.voice_client)
 
-        if not player or not player.is_connected():
+        if not player or not player.connected:
             await interaction.followup.send("I'm not in a voice channel.")
             return
 
@@ -384,14 +380,14 @@ async def setup(bot: MyBot) -> None:
         player = cast(MyPlayer | None, member.guild.voice_client)
         if not player:
             return
-        voice_channel = cast(VoiceChannel | StageChannel, player.channel)
+        voice_channel = player.channel
         if all(x.bot for x in voice_channel.members):
             await asyncio.sleep(15)
             if all(x.bot for x in voice_channel.members):
                 await player.disconnect()
 
     @bot.listen()
-    async def on_wavelink_track_start(payload: TrackEventPayload) -> None:
+    async def on_wavelink_track_start(payload: TrackStartEventPayload) -> None:
         player = cast(MyPlayer, payload.player)
 
         if player.text_channel:
@@ -400,7 +396,10 @@ async def setup(bot: MyBot) -> None:
             player.now_playing_message = await player.text_channel.send(embed=embed)
 
     @bot.listen()
-    async def on_wavelink_track_end(payload: TrackEventPayload) -> None:
+    async def on_wavelink_track_end(payload: TrackEndEventPayload) -> None:
+        if payload.player is None:
+            return
+
         player = cast(MyPlayer, payload.player)
 
         await player.delete_now_playing_message()
@@ -415,7 +414,12 @@ async def setup(bot: MyBot) -> None:
                 pass
 
     @bot.listen()
-    async def on_wavelink_websocket_closed(payload: WebsocketClosedPayload) -> None:
+    async def on_wavelink_websocket_closed(
+        payload: WebsocketClosedEventPayload,
+    ) -> None:
+        if payload.player is None:
+            return
+
         player = cast(MyPlayer, payload.player)
 
         await player.delete_now_playing_message()

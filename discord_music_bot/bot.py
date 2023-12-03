@@ -8,7 +8,7 @@ from typing import Any
 
 from discord import File, Object
 from discord.ext import commands
-from wavelink import Node, NodePool  # type: ignore[import-untyped]
+from wavelink import Node, NodeReadyEventPayload, Pool
 
 
 class MyBot(commands.Bot):
@@ -41,12 +41,12 @@ class MyBot(commands.Bot):
 
         host, port, password = self.lavalink_connection
         node = Node(uri=f"http://{host}:{port}", password=password)
-        await NodePool.connect(client=self, nodes=[node])
+        await Pool.connect(client=self, nodes=[node])
 
-    async def on_wavelink_node_ready(self, node: Node) -> None:
-        print(f"Node {node.id} is ready!")
+    async def on_wavelink_node_ready(self, payload: NodeReadyEventPayload) -> None:
+        print(f"Node {payload.node.identifier} is ready!")
 
-        for player in list(node.players.values()):
+        for player in list(payload.node.players.values()):
             await player.disconnect()
 
     async def on_error(self, event_method: str, /, *args: Any, **kwargs: Any) -> None:

@@ -5,10 +5,10 @@ from typing import Any
 
 from discord import Client, Message, NotFound, TextChannel, Thread, VoiceChannel
 from discord.abc import Connectable
-from wavelink import Playable, Player  # type: ignore[import-untyped]
+from wavelink import Playable, Player
 
 
-class MyPlayer(Player):  # type: ignore[misc]
+class MyPlayer(Player):
     def __init__(self, client: Client, channel: Connectable) -> None:
         super().__init__(client, channel)
 
@@ -17,13 +17,13 @@ class MyPlayer(Player):  # type: ignore[misc]
         self.text_channel: TextChannel | VoiceChannel | Thread | None = None
         self.now_playing_message: Message | None = None
 
-    async def stop(self, *, force: bool = True) -> None:
+    async def skip(self, *, force: bool = True) -> None:
         if isinstance(self.loop, Playable):
             try:
                 self.loop = self.play_queue.popleft()
             except IndexError:
                 self.loop = False
-        await super().stop(force=force)
+        await super().skip(force=force)
 
     async def disconnect(self, **kwargs: Any) -> None:
         await self.delete_now_playing_message()
