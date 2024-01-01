@@ -33,10 +33,10 @@ typenv = "0.2.0"
 wavelink = "3.0.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "23.11.0"
-mypy = "1.7.1"
+black = "23.12.1"
+mypy = "1.8.0"
 poethepoet = "0.24.4"
-ruff = "0.1.6"
+ruff = "0.1.9"
 
 [tool.poetry.scripts]
 discord-music-bot = "discord_music_bot.__main__:main"
