@@ -27,10 +27,10 @@ description = ""
 authors = ["Parnassius <Parnassius@users.noreply.github.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.12"
 discord-py = "2.3.2"
 typenv = "0.2.0"
-wavelink = "3.0.0"
+wavelink = "3.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "24.1.1"
@@ -43,7 +43,7 @@ discord-music-bot = "discord_music_bot.__main__:main"
 
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py312"
 select = [
     "A",     # flake8-builtins
     "ARG",   # flake8-unused-arguments
