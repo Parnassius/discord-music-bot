@@ -21,6 +21,15 @@ RUN /opt/poetry-venv/bin/poetry build --no-interaction --format wheel
 RUN .venv/bin/pip install ./dist/*.whl
 
 
+FROM builder as test
+
+RUN /opt/poetry-venv/bin/poetry install --no-interaction --no-root
+
+RUN /opt/poetry-venv/bin/poetry run poe black --check
+RUN /opt/poetry-venv/bin/poetry run poe mypy
+RUN /opt/poetry-venv/bin/poetry run poe ruff
+
+
 FROM base as final
 
 ENV PATH="/app/.venv/bin:$PATH"

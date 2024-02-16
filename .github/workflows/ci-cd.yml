@@ -1,0 +1,39 @@
+name: ci/cd
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 1 * *'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Lint and test in container
+        run: podman build --target test .
+
+  publish:
+    permissions:
+      contents: read
+      packages: write
+    needs: test
+    if: contains(fromJSON('["push", "workflow_dispatch", "schedule"]'), github.event_name) && github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Get target image name
+        id: image
+        run: echo "image_name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+      - name: Build image
+        run: podman build --tag ${{ steps.image.outputs.image_name }}:latest .
+      - name: Push to ghcr.io
+        run: podman push --creds=${{ github.actor }}:${{ github.token }} ${{ steps.image.outputs.image_name }}:latest ghcr.io/${{ steps.image.outputs.image_name }}:latest
+      - name: Delete old image versions
+        uses: actions/delete-package-versions@v5
+        with:
+          package-name: ${{ github.event.repository.name }}
+          package-type: container
+          min-versions-to-keep: 10
