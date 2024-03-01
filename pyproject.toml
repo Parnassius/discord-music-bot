@@ -11,12 +11,12 @@ warn_unreachable = true
 
 
 [tool.poe.tasks]
-ruff-fix = "ruff discord_music_bot --fix-only --exit-zero"
+ruff-fix = "ruff check discord_music_bot --fix-only --exit-zero"
 black = "black discord_music_bot"
 format = ["ruff-fix", "black"]
 
 mypy = "mypy discord_music_bot"
-ruff = "ruff discord_music_bot"
+ruff = "ruff check discord_music_bot"
 all = ["format", "mypy", "ruff"]
 
 
@@ -44,6 +44,8 @@ discord-music-bot = "discord_music_bot.__main__:main"
 
 [tool.ruff]
 target-version = "py312"
+
+[tool.ruff.lint]
 select = [
     "A",     # flake8-builtins
     "ARG",   # flake8-unused-arguments
@@ -76,12 +78,12 @@ fixable = [
 ]
 dummy-variable-rgx = "^_$"
 
-[tool.ruff.flake8-tidy-imports]
+[tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
 
-[tool.ruff.flake8-unused-arguments]
+[tool.ruff.lint.flake8-unused-arguments]
 ignore-variadic-names = true
 
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 required-imports = ["from __future__ import annotations"]
 split-on-trailing-comma = false
