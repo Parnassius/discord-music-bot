@@ -33,7 +33,7 @@ typenv = "0.2.0"
 wavelink = "3.2.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "24.2.0"
+black = "24.3.0"
 mypy = "1.8.0"
 poethepoet = "0.25.0"
 ruff = "0.3.0"
