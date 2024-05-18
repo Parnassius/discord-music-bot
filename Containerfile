@@ -7,6 +7,8 @@ WORKDIR /app
 
 FROM base as builder
 
+RUN apk add --no-cache gcc musl-dev libffi-dev
+
 RUN python -m venv /opt/poetry-venv
 RUN /opt/poetry-venv/bin/pip install --upgrade pip setuptools
 RUN /opt/poetry-venv/bin/pip install poetry
