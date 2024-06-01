@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import signal
 from pathlib import Path
 from sys import exc_info
 from traceback import format_exception
@@ -24,6 +25,8 @@ class MyBot(commands.Bot):
         self.test_guild_id = test_guild_id
 
     async def setup_hook(self) -> None:
+        signal.signal(signal.SIGTERM, signal.getsignal(signal.SIGINT))
+
         modules = Path(__file__).parent / "plugins"
         for f in modules.glob("*.py"):
             if f.is_file() and f.name != "__init__.py":
