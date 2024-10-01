@@ -35,8 +35,8 @@ wavelink = "3.2.0"
 [tool.poetry.group.dev.dependencies]
 black = "24.8.0"
 mypy = "1.11.2"
-poethepoet = "0.28.0"
-ruff = "0.6.3"
+poethepoet = "0.29.0"
+ruff = "0.6.8"
 
 [tool.poetry.scripts]
 discord-music-bot = "discord_music_bot.__main__:main"
