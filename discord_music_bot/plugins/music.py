@@ -376,7 +376,9 @@ async def setup(bot: MyBot) -> None:
 
     @bot.listen()
     async def on_voice_state_update(
-        member: Member, before: VoiceState, after: VoiceState  # noqa: ARG001
+        member: Member,
+        before: VoiceState,  # noqa: ARG001
+        after: VoiceState,  # noqa: ARG001
     ) -> None:
         player = cast(MyPlayer | None, member.guild.voice_client)
         if not player:

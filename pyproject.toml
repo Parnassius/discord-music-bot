@@ -11,9 +11,9 @@ warn_unreachable = true
 
 
 [tool.poe.tasks]
-ruff-fix = "ruff check discord_music_bot --fix-only --exit-zero"
-black = "black discord_music_bot"
-format = ["ruff-fix", "black"]
+ruff-fix = "ruff check discord_music_bot --fix-only"
+ruff-format = "ruff format discord_music_bot"
+format = ["ruff-fix", "ruff-format"]
 
 mypy = "mypy discord_music_bot"
 ruff = "ruff check discord_music_bot"
@@ -33,7 +33,6 @@ typenv = "0.2.0"
 wavelink = "3.2.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "24.10.0"
 mypy = "1.13.0"
 poethepoet = "0.29.0"
 ruff = "0.7.1"
