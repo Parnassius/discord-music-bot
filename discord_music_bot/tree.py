@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import io
 from traceback import format_exception
 

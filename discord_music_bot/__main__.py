@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from discord import Intents
 from discord.ext import commands
 from typenv import Env

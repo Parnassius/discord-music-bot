@@ -84,5 +84,4 @@ ban-relative-imports = "all"
 ignore-variadic-names = true
 
 [tool.ruff.lint.isort]
-required-imports = ["from __future__ import annotations"]
 split-on-trailing-comma = false
