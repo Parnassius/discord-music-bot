@@ -11,12 +11,12 @@ warn_unreachable = true
 
 
 [tool.poe.tasks]
-ruff-fix = "ruff check discord_music_bot --fix-only"
-ruff-format = "ruff format discord_music_bot"
+ruff-fix = "ruff check src --fix-only"
+ruff-format = "ruff format src"
 format = ["ruff-fix", "ruff-format"]
 
-mypy = "mypy discord_music_bot"
-ruff = "ruff check discord_music_bot"
+mypy = "mypy src"
+ruff = "ruff check src"
 all = ["format", "mypy", "ruff"]
 
 
