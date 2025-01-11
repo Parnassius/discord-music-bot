@@ -1,5 +1,8 @@
-__pycache__/
-/.env
-/.venv
-/dist
-/poetry.toml
+__pycache__
+*.py[oc]
+build
+dist
+wheels
+*.egg-info
+.venv
+.env

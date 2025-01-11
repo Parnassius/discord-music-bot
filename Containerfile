@@ -1,35 +1,38 @@
 FROM python:3.12-alpine as base
 
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
+
 WORKDIR /app
 
 
 FROM base as builder
 
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_FROZEN=1
+ENV UV_LINK_MODE=copy
+
 RUN apk add --no-cache gcc musl-dev libffi-dev
 
-RUN python -m venv /opt/poetry-venv
-RUN /opt/poetry-venv/bin/pip install --upgrade pip setuptools
-RUN /opt/poetry-venv/bin/pip install poetry
+COPY --from=ghcr.io/astral-sh/uv /uv /bin/uv
 
-RUN python -m venv .venv
-
-COPY poetry.lock pyproject.toml .
-RUN /opt/poetry-venv/bin/poetry install --no-interaction --only main --no-root
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --no-install-project --no-dev --no-editable
 
 COPY . .
-RUN /opt/poetry-venv/bin/poetry build --no-interaction --format wheel
-RUN .venv/bin/pip install --no-deps ./dist/*.whl
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-dev --no-editable
 
 
 FROM builder as test
 
-RUN /opt/poetry-venv/bin/poetry install --no-interaction --no-root
+RUN apk add --no-cache make
 
-RUN /opt/poetry-venv/bin/poetry run poe ruff-format --check
-RUN /opt/poetry-venv/bin/poetry run poe mypy
-RUN /opt/poetry-venv/bin/poetry run poe ruff
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --no-editable
+
+RUN make lint
 
 
 FROM base as final
