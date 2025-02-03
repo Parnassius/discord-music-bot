@@ -5,7 +5,7 @@ requires-python = ">=3.12"
 dependencies = [
     "discord-py==2.4.0",
     "typenv==0.2.0",
-    "wavelink==3.2.0",
+    "wavelink==3.4.1",
 ]
 
 [project.scripts]
@@ -14,7 +14,7 @@ discord-music-bot = "discord_music_bot.__main__:main"
 [dependency-groups]
 dev = [
     "mypy==1.14.1",
-    "ruff==0.8.4",
+    "ruff==0.9.4",
 ]
 
 [build-system]
