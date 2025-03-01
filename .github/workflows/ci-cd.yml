@@ -20,7 +20,7 @@ jobs:
           - name: arm64
             os: ubuntu-24.04-arm  # renovate: github-runner
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
       - name: Install podman and buildah
         if: matrix.arch.name == 'arm64'
         run: |
@@ -44,7 +44,7 @@ jobs:
           - name: arm64
             os: ubuntu-24.04-arm  # renovate: github-runner
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: actions/checkout@v4
       - name: Install podman and buildah
         if: matrix.arch.name == 'arm64'
         run: |
@@ -77,7 +77,7 @@ jobs:
       - name: Push to ghcr.io
         run: podman manifest push --creds=${{ github.actor }}:${{ github.token }} ${{ steps.image.outputs.image_name }}:latest ghcr.io/${{ steps.image.outputs.image_name }}:latest
       - name: Delete old image versions
-        uses: actions/delete-package-versions@e5bc658cc4c965c472efe991f8beea3981499c55 # v5
+        uses: actions/delete-package-versions@v5
         with:
           package-name: ${{ github.event.repository.name }}
           package-type: container
