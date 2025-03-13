@@ -21,11 +21,6 @@ jobs:
             os: ubuntu-24.04-arm  # renovate: github-runner
     steps:
       - uses: actions/checkout@v4
-      - name: Install podman and buildah
-        if: matrix.arch.name == 'arm64'
-        run: |
-          sudo apt-get update
-          sudo apt-get install podman buildah
       - name: Lint and test in container
         run: podman build --platform linux/${{ matrix.arch.name }} --target test .
 
@@ -45,11 +40,6 @@ jobs:
             os: ubuntu-24.04-arm  # renovate: github-runner
     steps:
       - uses: actions/checkout@v4
-      - name: Install podman and buildah
-        if: matrix.arch.name == 'arm64'
-        run: |
-          sudo apt-get update
-          sudo apt-get install podman buildah
       - name: Get target image name
         id: image
         run: echo "image_name=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
