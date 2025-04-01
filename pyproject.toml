@@ -3,7 +3,7 @@ name = "discord-music-bot"
 version = "0.1.0"
 requires-python = ">=3.13"
 dependencies = [
-    "discord-py==2.5.0",
+    "discord-py==2.5.2",
     "typenv==0.2.0",
     "wavelink==3.4.1",
 ]
@@ -14,7 +14,7 @@ discord-music-bot = "discord_music_bot.__main__:main"
 [dependency-groups]
 dev = [
     "mypy==1.15.0",
-    "ruff==0.9.9",
+    "ruff==0.11.2",
 ]
 
 [build-system]
