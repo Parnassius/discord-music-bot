@@ -10,6 +10,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  editorconfig:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup editorconfig-checker
+        uses: editorconfig-checker/action-editorconfig-checker@v2
+      - name: Run editorconfig-checker
+        run: editorconfig-checker
+
   test:
     runs-on: ${{ matrix.arch.os }}
     strategy:
@@ -28,7 +37,7 @@ jobs:
     permissions:
       contents: read
       packages: write
-    needs: test
+    needs: [editorconfig, test]
     if: contains(fromJSON('["push", "workflow_dispatch"]'), github.event_name) && github.ref_name == 'main'
     runs-on: ${{ matrix.arch.os }}
     strategy:
@@ -75,8 +84,7 @@ jobs:
 
   dummy-required-job:
     runs-on: ubuntu-24.04
-    needs:
-      - test
+    needs: [editorconfig, test]
     if: always()
     steps:
       - run: exit 1
